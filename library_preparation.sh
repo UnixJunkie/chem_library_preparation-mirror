@@ -132,8 +132,8 @@ time for i in `cat tautomers_firstconf_cgenffparam.list`; do
 	python ${PYTHONDIR}deconstruction_outmediancombi.py ${ABSINTHDIR}ions_neutrals.csv ${ABSINTHDIR}correctives_values.csv mol2_split/${i}_conf_1.mol2 ${i}.mol2
 done &> rFES_4ABSINTH.dat
 mv output_mol2 tmp_absinthmol
-cd tmp_absinthmol ; lsr | awk '{if ($5 != 0) print $9}' | sed 's/.mol2//g' > ../tautomers_firstconf_cgenffparam_deconstr.list ; cd ..
-for i in `cat tautomers_firstconf_cgenffparam_deconstr.list ` ; do grep $i conformers_tautomers_original_full.list ; done > tautomers_conformers_cgenffparam_absinthparam.list 
+cd tmp_absinthmol ; ls -lhrt | awk '{if ($5 != 0) print $9}' | sed 's/.mol2//g' > ../tautomers_firstconf_cgenffparam_deconstr.list ; cd ..
+for i in `cat tautomers_firstconf_cgenffparam_deconstr.list ` ; do grep $i conformers_tautomers_original_full.list ; done &> tautomers_conformers_cgenffparam_absinthparam.list 
 echo "
 
 "
