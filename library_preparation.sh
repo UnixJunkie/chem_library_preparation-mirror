@@ -92,8 +92,8 @@ egrep "_conf_1$" conformers_tautomers_original_full.list > original_tautomers_fi
 mkdir cgenff_param
 time for i in `cat original_tautomers_firstconf.list`; do
 	a=`echo $i | sed 's/_conf_1//g'`
-	cgenff mol2_split/${i}.mol2 > cgenff_param/${a}.str &> /dev/null
-done
+	cgenff mol2_split/${i}.mol2 > cgenff_param/${a}.str 
+done &> /dev/null
 ##JR## Some molecules didn't go through, however, CGenFF generates a non empty file,
 ##JR## with empty parameters. We should get rid of them.
 ##JR## In addition, for further putative use in CHARMM, it may turn useful to rename the
