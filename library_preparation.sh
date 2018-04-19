@@ -42,8 +42,8 @@
 #JR# all side files in a joined python script folder
 #JR# and other files, such as the FES.csv files
 
-PYTHONDIR=/disk2b/jremy/libraries/tuto_preparation_libraries/pythonscripts/
-ABSINTHDIR=/disk2b/jremy/libraries/tuto_preparation_libraries/otherfiles/
+PYTHONDIR=/disk3/jremy/caflisch_git/chem_library_preparation/pythonscripts/
+ABSINTHDIR=/disk3/jremy/caflisch_git/chem_library_preparation/otherfiles/
 
 
 echo "
@@ -84,6 +84,9 @@ echo "
 date
 echo "Files have been converted to mol2"
 
+# Tar temporary folder
+tar -zcf 100conf_075rmsd_split.tgz 100conf_075rmsd/ && rm -r 100conf_075rmsd/
+
 ##JR## Step 4: Generate CGenFF parameters
 ##JR## Here to save time we want to generate just the parameter for ONE conformer for each tautomer.
 ##JR## Side note, ofc different tautomers of the same molecules need different parameters.
@@ -103,13 +106,15 @@ mkdir ../cgenff_clean
 time for i in *.str ; do [[ `egrep "RESI" ${i}` ]] && sed -r 's/RESI ......../RESI LIG     /g' ${i} > ../cgenff_clean/${i} ; done &> /dev/null
 cd ../cgenff_clean ; ls | sed 's/.str//g' > ../tautomers_firstconf_cgenffparam.list ; cd ../
 for i in `cat tautomers_firstconf_cgenffparam.list` ; do grep $i conformers_tautomers_original_full.list ; done > tautomers_conformers_cgenffparam.list 
+
+# Clean temporary folder
+rm -r cgenff_param
+
 echo "
 
 "
 date
 echo "CGenFF parameters have been generated"
-# tar -zcf cgenffparamsplit.tgz cgenff_param
-# rm -r cgenff_param
 
 ##JR## Step 5: Create SEED files
 mkdir mol2seed
@@ -118,14 +123,15 @@ time for i in `cat tautomers_conformers_cgenffparam.list` ; do
 	python ${PYTHONDIR}mol2ori_to_mol2seed4_cgenff4_singlefiles.py mol2_split/${i}.mol2 cgenff_clean/${a}.str mol2seed/${i}_seed.mol2
 done
 cd mol2seed ; for i in * ; do cat $i >> ../library_seed.mol2 ; done ; cd ..
+
+# Clean temporary folder
+rm -r mol2seed
+
 echo "
 
 "
 date
 echo "SEED library is ready!"
-
-# tar -zcf mol2seedsplit.tgz mol2seed
-# rm -r mol2seed
 
 ##JR## Step 6: Generate ABSINTH parameters
 time for i in `cat tautomers_firstconf_cgenffparam.list`; do
@@ -140,6 +146,9 @@ echo "
 date
 echo "ABSINTH deconstruction has been performed"
 
+# Tar temporary folder
+tar -zcf mol2_split.tgz mol2_split/ && rm -r mol2_split/
+
 ##JR## Remark: At this step, the files are not docked, so it can seem useless to generate CAMPARI files now
 ##JR## However, it's easier to replace the coordinate blocks (from SEED) in pregenerated files (from now)
 ##JR## Rather than have to convert the files from SEED to a format that will work with CAMPARI
@@ -150,15 +159,24 @@ mkdir 4absinth
 time for i in `cat tautomers_firstconf_cgenffparam_deconstr.list`; do
 	python ${PYTHONDIR}scoring_mol2_updatepartialcharges_updatewithLPH.py tmp_absinthmol/${i}.mol2 cgenff_clean/${i}.str 4absinth/${i}_absinth.mol2
 done 
+# Tar temporary folder
+tar -zcf tmp_absinthmol.tgz tmp_absinthmol/ && rm -r tmp_absinthmol/
+tar -zcf absinth_templates.tgz 4absinth/ && rm -r 4absinth/
+
 echo "
 
 "
 date
 echo "ABSINTH files are available in the folder 4absinth"
 
+# Tar temporary folder
+tar -zcf cgenff_clean.tgz cgenff_clean/ && rm -r cgenff_clean/
+
 date
 echo "
 
 "
 echo "Hopefully everything went fine
-PS for ABSINTH, check the log file 'rFES_4ABSINTH.dat' "
+PS: for ABSINTH, check the log file 'rFES_4ABSINTH.dat'
+
+The library file for seed is library_seed.mol2 "
