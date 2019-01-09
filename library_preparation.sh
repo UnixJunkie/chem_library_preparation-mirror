@@ -51,15 +51,23 @@ echo "
 "
 date
 echo "OK, let's start preparing that library"
+##CL## Before starting the protocol, remove counterions from the molecules.
+##CL## We use molconvert for this -> corina 3.10 does not support SD V3000 files (but the corina 4.0 does)
+molconvert -F sdf library.sdf -o library_nosalt.sdf
+##CL## can also use corina for this:
+##CL## corina -d rs
+##CL## (corina -h all => rs - Remove small fragments (counter ions, solvent molecules, etc.))
+
 ##JR## Step 1: generation of tautomers with ChemAxon and select the main ones with a custom python script (minimum occupancy set in the script)
-time cxcalc dominanttautomerdistribution -H 7.2 -f sdf -t "tauto_occupancy" library.sdf > tautodistrib.sdf
+time cxcalc dominanttautomerdistribution -H 7.2 -f sdf -t "tauto_occupancy" library_nosalt.sdf > tautodistrib.sdf
 echo "
 
 "
 date
 echo "tautomers generated"
-python ${PYTHONDIR}sdf_select_bytag_nordkit.py tautodistrib.sdf maintauto.sdf
+python ${PYTHONDIR}sdf_select_bytag_nordkit.py tautodistrib.sdf maintauto.sdf 24.9
 ##JR# Note that this python script adds "tauto_number" to molecules so that their name is unique
+##CL# modified, now the occupancy threshold in no longer hard-coded
 
 ##JR## Step 2: generation of conformers
 mkdir 100conf_075rmsd/
@@ -122,6 +130,11 @@ time for i in `cat tautomers_conformers_cgenffparam.list` ; do
 	a=`echo $i | sed -r 's/_conf_[0-9]*//g' `
 	python ${PYTHONDIR}mol2ori_to_mol2seed4_cgenff4_singlefiles.py mol2_split/${i}.mol2 cgenff_clean/${a}.str mol2seed/${i}_seed.mol2
 done
+
+##CL## At this point different conformer of the same fragment (or tautomer)
+##CL## have the same name. So we rename them in the mol2 file.
+cd mol2seed ; for i in *; do sed -i "s/${i%_conf*}/${i%_seed.mol2}/" $i; done; cd ..
+
 cd mol2seed ; for i in * ; do cat $i >> ../library_seed.mol2 ; done ; cd ..
 
 # Clean temporary folder
